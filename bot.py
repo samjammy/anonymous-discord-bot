@@ -1,26 +1,39 @@
 import os
 import discord
-from discord.ext import commands
-from discord_slash import SlashCommand, SlashContext
+from discord import app_commands
 
 intents = discord.Intents.default()
 intents.guilds = True
 intents.message_content = True
 
-bot = commands.Bot(command_prefix="!", intents=intents)
-slash = SlashCommand(bot, sync_commands=True)
+class MyClient(discord.Client):
+    def __init__(self):
+        super().__init__(intents=intents)
+        self.tree = app_commands.CommandTree(self)
 
-@bot.event
+    async def setup_hook(self):
+        await self.tree.sync()
+
+client = MyClient()
+
+@client.event
 async def on_ready():
-    print(f"Logged in as {bot.user}")
+    print(f"Logged in as {client.user}")
 
-@slash.slash(name="say", description="Anonymous message")
-async def say(ctx: SlashContext, text: str):
-    await ctx.defer(hidden=True)
+@client.tree.command(name="say", description="Send an anonymous message")
+@app_commands.describe(text="Message to send anonymously")
+async def say(interaction: discord.Interaction, text: str):
+    if interaction.user.id != 886441379654426656:
+        await interaction.response.send_message(
+            "You are not allowed to use this command.",
+            ephemeral=True
+        )
+        return
 
-    if ctx.author.id == 886441379654426656:
-        await ctx.channel.send(text)
-    else:
-        await ctx.send("Not allowed", hidden=True)
+    await interaction.channel.send(text)
+    await interaction.response.send_message(
+        "Message sent anonymously ✅",
+        ephemeral=True
+    )
 
-bot.run(os.getenv("BOT_TOKEN"))
+client.run(os.getenv("BOT_TOKEN"))
