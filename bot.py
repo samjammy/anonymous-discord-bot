@@ -23,7 +23,7 @@ async def on_ready():
 @client.tree.command(name="say", description="Send an anonymous message")
 @app_commands.describe(text="Message to send anonymously")
 async def say(interaction: discord.Interaction, text: str):
-    if interaction.user.id != 886441379654426656:
+    if interaction.user.id != 1461686040552017943:
         await interaction.response.send_message(
             "You are not allowed to use this command.",
             ephemeral=True
